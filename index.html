@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NASA APOD Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    body {
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      flex-direction: column;
+    }
+    .container {
+      max-width: 800px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+      animation: fadeIn 1.5s ease;
+      margin-top: 20px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2em;
+      margin-bottom: 20px;
+      color: #ffcc00;
+    }
+    img, iframe {
+      width: 100%;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+    p {
+      line-height: 1.6;
+    }
+    .loader {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #ffcc00;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+      display: none;
+    }
+    .input-section {
+      text-align: center;
+      margin-top: 20px;
+    }
+    input[type="date"] {
+      padding: 8px;
+      border-radius: 5px;
+      border: none;
+      margin-right: 10px;
+    }
+    button {
+      padding: 8px 16px;
+      background-color: #ffcc00;
+      color: #333;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #e6b800;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 600px) {
+      h1 { font-size: 1.5em; }
+      input[type="date"], button {
+        display: block;
+        margin: 10px auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>NASA Astronomy Picture of the Day</h1>
+
+  <div class="input-section">
+    <input type="date" id="dateInput" max="" />
+    <button onclick="fetchAPOD()">Get Picture</button>
+  </div>
+
+  <div id="loader" class="loader"></div>
+
+  <div id="apodContainer" class="container" style="display:none;">
+    <h2 id="title"></h2>
+    <div id="media"></div>
+    <p id="description"></p>
+  </div>
+
+  <script>
+    const API_KEY = "T8QgswRR4yn7LnBsjBfflbdUXlT9fSFCgnfBhXHH";
+
+    // Set max date to today
+    document.getElementById('dateInput').max = new Date().toISOString().split("T")[0];
+
+    function fetchAPOD() {
+      const selectedDate = document.getElementById('dateInput').value;
+      if (!selectedDate) {
+        alert("Please select a date.");
+        return;
+      }
+
+      const URL = `https://api.nasa.gov/planetary/apod?api_key=${API_KEY}&date=${selectedDate}`;
+
+      document.getElementById('loader').style.display = 'block';
+      document.getElementById('apodContainer').style.display = 'none';
+
+      fetch(URL)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('loader').style.display = 'none';
+          document.getElementById('apodContainer').style.display = 'block';
+
+          document.getElementById('title').textContent = data.title;
+
+          if (data.media_type === 'image') {
+            document.getElementById('media').innerHTML = `<img src="${data.url}" alt="APOD Image">`;
+          } else if (data.media_type === 'video') {
+            document.getElementById('media').innerHTML = `<iframe src="${data.url}" frameborder="0" allowfullscreen></iframe>`;
+          }
+
+          document.getElementById('description').textContent = data.explanation;
+        })
+        .catch(error => {
+          document.getElementById('loader').style.display = 'none';
+          document.getElementById('apodContainer').style.display = 'block';
+          document.getElementById('title').textContent = "Error";
+          document.getElementById('media').innerHTML = "";
+          document.getElementById('description').textContent = "Could not fetch data. Please try again.";
+          console.error("Error fetching APOD:", error);
+        });
+    }
+  </script>
+</body>
+</html>
